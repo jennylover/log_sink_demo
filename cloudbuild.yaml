@@ -1,0 +1,11 @@
+steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - nc_pubsub_repo
+  - --runtime=python38
+  - --region=asia-northeast1
+  - --source=.
+  - --trigger-topic=nc_pusub_test
