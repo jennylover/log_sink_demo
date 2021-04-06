@@ -1,9 +1,15 @@
-import base64
-import os
+# Imports the Google Cloud client library
+from google.cloud import storage
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+import base64
+import os
 
-receiver = 'recipients.txt'
+# Instantiates a client
+storage_client = storage.Client()
+
+bucket_name = 'log_sink_demo'
+mail_receiver = 'recipients.txt'
 
 def hello_pubsub(event, context):
     """Background Cloud Function to be triggered by Pub/Sub.
@@ -16,27 +22,20 @@ def hello_pubsub(event, context):
          `timestamp` field contains the publish time.
     """
 
-    print("""This Function was triggered by messageId {} published at {}
-    """.format(context.event_id, context.timestamp))
-
     if 'data' in event:
         name = base64.b64decode(event['data']).decode('utf-8')
-    else:
-        name = 'World'
-    print('Hello {}!'.format(name))
 
-    with open(receiver) as file_in:
-        lines = []
-        for line in file_in:
-            # lines.append(line.rstrip('\n').split(','))
-            lines.append(line.rstrip('\n'))
-
-    # mlist = ', '.join(lines)
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.get_blob(mail_receiver)
+    data = blob.download_as_string()
+    data = data.decode('utf-8')
+    data = data.splitlines()
+    print(data)
 
     message = Mail(
         from_email='saeho@popori.info',
-        to_emails=lines,
-        subject='Sending with SendGrid is Fun',
+        to_emails=data,
+        subject='[Alert] Audit Logging',
         html_content=format(name))
         
     try:
