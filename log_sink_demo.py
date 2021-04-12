@@ -1,6 +1,8 @@
 # Imports the Google Cloud client library
 from google.cloud import logging
 from google.cloud import storage
+from googleapiclient.discovery import build
+import google.auth
 import os
 
 # Instantiates a client
@@ -8,11 +10,11 @@ logging_client = logging.Client()
 storage_client = storage.Client()
 
 # The name of the log to write to
-log_name = 'my-log'
 file_name = 'log_filter.txt'
 sink_name = 'log_sink_demo'
+org_id = os.environ.get('ORG_ID')
 
-def update_sink(sink_name, filter_):
+def update_sink(name, filter_):
     """Changes a sink's filter.
 
     The filter determines which logs this sink matches and will be exported
@@ -22,13 +24,22 @@ def update_sink(sink_name, filter_):
     filter information.
     """
 
-    sink = logging_client.sink(sink_name)
+    credentials, _ = google.auth.default()
+    logging_client = build('logging', 'v2', credentials=credentials, cache_discovery=False)
 
-    sink.reload()
+    org_sink_name = 'organizations/{}/sinks/{}'.format(org_id,sink_name)
 
-    sink.filter_ = filter_
-    print("Updated sink {}".format(sink.name))
-    sink.update(unique_writer_identity=True)
+    sinks = logging_client.sinks().get(sinkName=org_sink_name).execute()
+    print(sinks,end='\n\n')
+
+    sink_body={
+        'destination' : sinks['destination'],
+        'filter' : filter_
+        #'filter':filter_.replace('"','\\"')
+    }
+
+    sinks_updated = logging_client.sinks().update(sinkName=org_sink_name,body=sink_body).execute()
+    print(sinks_updated,end='\n\n')
 
 def hello_gcs(event, context):
      """Background Cloud Function to be triggered by Cloud Storage.
