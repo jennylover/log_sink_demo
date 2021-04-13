@@ -33,6 +33,7 @@ def update_sink(name, filter_):
     print(sinks,end='\n\n')
 
     sinks['filter'] = filter_
+    sinks['includeChildren'] = True
 
     sinks_updated = logging_client.sinks().update(sinkName=org_sink_name,body=sinks).execute()
     print(sinks_updated,end='\n\n')
