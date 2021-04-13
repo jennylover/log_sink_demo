@@ -32,13 +32,9 @@ def update_sink(name, filter_):
     sinks = logging_client.sinks().get(sinkName=org_sink_name).execute()
     print(sinks,end='\n\n')
 
-    sink_body={
-        'destination' : sinks['destination'],
-        'filter' : filter_
-        #'filter':filter_.replace('"','\\"')
-    }
+    sinks['filter'] = filter_
 
-    sinks_updated = logging_client.sinks().update(sinkName=org_sink_name,body=sink_body).execute()
+    sinks_updated = logging_client.sinks().update(sinkName=org_sink_name,body=sinks).execute()
     print(sinks_updated,end='\n\n')
 
 def hello_gcs(event, context):
